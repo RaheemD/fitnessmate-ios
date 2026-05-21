@@ -1,0 +1,11 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.netlify.fitnessmate.twa",
+      "sha256_cert_fingerprints": ["4C:0C:60:D2:40:F2:22:F7:55:0A:78:82:72:CF:76:10:76:08:99:F9:3D:0E:01:75:C3:81:01:9E:4C:65:9D:14"]
+    }
+  }
+]
+

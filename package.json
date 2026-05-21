@@ -1,0 +1,26 @@
+{
+  "name": "fitnessmate-main",
+  "version": "1.0.0",
+  "description": "FitnessMate - AI Workout Hub",
+  "main": "sw.js",
+  "scripts": {
+    "build": "node copy-web.js",
+    "cap:sync": "node copy-web.js && npx cap sync ios",
+    "cap:open": "npx cap open ios",
+    "cap:run": "node copy-web.js && npx cap run ios",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/browser": "^8.0.3",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
+    "@capacitor/ios": "^8.3.4",
+    "@capacitor/keyboard": "^8.0.3",
+    "@capacitor/share": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2"
+  }
+}

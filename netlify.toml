@@ -1,0 +1,62 @@
+# netlify.toml — clean working version for Supabase + PWA
+
+[build]
+  publish = "."
+  command = ""
+  functions = "netlify/functions"  
+
+# 1. Redirect .well-known (for Android Asset Links)
+[[redirects]]
+  from = "/.well-known/*"
+  to = "/well-known/:splat"
+  status = 200
+  force = true
+
+# 2. Serve assetlinks.json correctly (for Android verification)
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
+
+# 3. # Serve app-ads.txt correctly for AdMob
+[[redirects]]
+  from = "/app-ads.txt"
+  to   = "/app-ads.txt"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/app-ads.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+
+# 4. Allow CORS for all API calls (important for Supabase)
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Origin, Content-Type, Authorization"
+
+# Force HTTP/1.1 for Netlify Functions to avoid HTTP/2 resets
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Connection = "close"
+
+# 4b. Route API calls to Netlify Functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
+# 5. Keep client-side routing working (for index.html + workout.html)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
