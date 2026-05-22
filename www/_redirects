@@ -1,0 +1,5 @@
+/app-ads.txt   /app-ads.txt   200
+/.well-known/* /well-known/:splat  200
+/workout/*     /workout.html  200
+/*             /index.html    200
+

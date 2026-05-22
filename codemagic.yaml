@@ -4,7 +4,6 @@ workflows:
     max_build_duration: 60
     environment:
       xcode: latest
-      cocoapods: default
     scripts:
       - name: Install dependencies
         script: npm install
@@ -14,9 +13,6 @@ workflows:
         script: npx cap add ios
       - name: Capacitor sync
         script: npx cap sync ios
-      - name: Install CocoaPods
-        script: |
-          find . -name "Podfile" -execdir pod install \;
       - name: Build iOS
         script: |
           xcodebuild build \
