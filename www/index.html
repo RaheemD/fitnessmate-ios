@@ -10745,15 +10745,21 @@ Respond ONLY with a valid JSON object in this format:
               if (preload) {
                 iframe = preload;
                 iframe.id = 'workout-iframe';
-                iframe.removeAttribute('style');
+                // Keep iframe invisible during first render to prevent white flash on iOS
+                iframe.style.cssText = 'border:0; opacity:0; transition:opacity 0.3s ease;';
               } else {
                 iframe = document.createElement('iframe');
                 iframe.loading = 'eager';
                 iframe.id = 'workout-iframe';
+                iframe.style.cssText = 'border:0; opacity:0; transition:opacity 0.3s ease;';
               }
               iframe.className = 'w-full border-0';
               try { iframe.setAttribute('allow','autoplay'); } catch(_) {}
               if (!iframe.src) iframe.src = './workout.html';
+              // Fade in once content is ready (prevents white box on iOS first load)
+              const fadeIn = () => { try { iframe.style.opacity = '1'; } catch(_) {} };
+              iframe.addEventListener('load', fadeIn, { once: true });
+              setTimeout(fadeIn, 2500); // Safety fallback
             }
             if (host && iframe.parentElement !== host) host.appendChild(iframe);
 
@@ -11528,7 +11534,7 @@ Respond ONLY with a valid JSON object in this exact format:
 
           <div id="exercises-wrapper" className={`${activeTab === 'exercises' ? 'block' : 'hidden'}`}>
             {exercisesMode === 'iframe' && (
-              <div id="exercises-host" className="w-full"></div>
+              <div id="exercises-host" className="w-full bg-gray-50 dark:bg-gray-900"></div>
             )}
 
             {exercisesMode === 'cards' && (
