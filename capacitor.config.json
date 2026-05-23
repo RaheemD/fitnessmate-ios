@@ -5,7 +5,7 @@
   "ios": {
     "scheme": "FitnessMate",
     "contentInset": "automatic",
-    "allowsLinkPreview": true,
+    "allowsLinkPreview": false,
     "scrollEnabled": true
   },
   "server": {
