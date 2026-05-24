@@ -124,8 +124,10 @@
       const isDarkMode = (rawTheme === null) ? true : (rawTheme === 'true');
       if (isDarkMode) {
         document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = 'dark';
       } else {
         document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
       }
       // Allow disabling gradient only via explicit query flag (runs early)
       try {
