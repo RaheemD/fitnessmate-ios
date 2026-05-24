@@ -10745,7 +10745,7 @@ Respond ONLY with a valid JSON object in this format:
               if (preload) {
                 iframe = preload;
                 iframe.id = 'workout-iframe';
-                iframe.removeAttribute('style');
+                iframe.style.cssText = 'background:transparent;';
               } else {
                 iframe = document.createElement('iframe');
                 iframe.loading = 'eager';
@@ -10755,12 +10755,6 @@ Respond ONLY with a valid JSON object in this format:
               try { iframe.setAttribute('allow','autoplay'); } catch(_) {}
               if (!iframe.src) iframe.src = './workout.html';
             }
-            // Prevent white flash/glitch during iframe loading/moving (especially in dark mode)
-            const isDark = document.documentElement.classList.contains('dark');
-            iframe.style.backgroundColor = isDark ? '#111827' : '#f9fafb';
-            iframe.style.background = isDark ? '#111827' : '#f9fafb';
-            try { iframe.setAttribute('allowtransparency', 'true'); } catch(_) {}
-
             if (host && iframe.parentElement !== host) host.appendChild(iframe);
 
             if (pendingWorkoutIndex !== null && pendingWorkoutIndex !== undefined) {

@@ -5,29 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Workouts — Single File App</title>
 
-  <script>
-    // Dark mode detection - must run immediately before styles or scripts block
-    (function() {
-      const rawTheme = localStorage.getItem('fitmate-dark-mode');
-      const isDarkMode = (rawTheme === null) ? true : (rawTheme === 'true');
-      if (isDarkMode) {
-        document.documentElement.classList.add('dark');
-        document.documentElement.style.backgroundColor = '#111827';
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.style.backgroundColor = '#f9fafb';
-      }
-      try {
-        const params = new URLSearchParams(location.search);
-        const noWallpaperFlag = params.get('no_wallpaper');
-        const disableWallpaper = noWallpaperFlag === '1' || noWallpaperFlag === 'true' || params.has('no_wallpaper');
-        if (disableWallpaper) {
-          document.documentElement.style.setProperty('--wallpaperImage', 'none');
-        }
-      } catch(_) { /* noop */ }
-    })();
-  </script>
-
   <!-- PERFORMANCE PRELOADS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -140,7 +117,28 @@
     .hero-pattern .absolute span.font-extrabold { display: inline-block; line-height: 1.15; margin-bottom: 8px; }
     @media (min-width:1024px){ .page-title { font-size:3rem; } .card-title{ font-size:1.5rem; } }
   </style>
-
+    <script>
+      // Dark mode detection - must run before body renders
+      // Sync with index.html dark mode settings (default to dark when unset)
+      const rawTheme = localStorage.getItem('fitmate-dark-mode');
+      const isDarkMode = (rawTheme === null) ? true : (rawTheme === 'true');
+      if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.style.backgroundColor = '#111827';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.style.backgroundColor = '#f9fafb';
+      }
+      // Allow disabling gradient only via explicit query flag (runs early)
+      try {
+        const params = new URLSearchParams(location.search);
+        const noWallpaperFlag = params.get('no_wallpaper');
+        const disableWallpaper = noWallpaperFlag === '1' || noWallpaperFlag === 'true' || params.has('no_wallpaper');
+        if (disableWallpaper) {
+          document.documentElement.style.setProperty('--wallpaperImage', 'none');
+        }
+      } catch(_) { /* noop */ }
+    </script>
   <!-- PWA manifest + theme -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#ec4899"> <!-- main app pink -->
