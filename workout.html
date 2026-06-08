@@ -124,14 +124,6 @@
       } else {
         document.documentElement.classList.remove('dark')
       }
-      // Paint the document canvas with the themed color immediately so the
-      // iframe never shows a white UA-default background on its first render
-      // (fixes a one-time white flash on iOS when the preloaded iframe is shown).
-      try {
-        const themeBg = isDarkMode ? '#111827' : '#f9fafb';
-        document.documentElement.style.backgroundColor = themeBg;
-        document.documentElement.style.colorScheme = isDarkMode ? 'dark' : 'light';
-      } catch (_) { /* noop */ }
       // Allow disabling gradient only via explicit query flag (runs early)
       try {
         const params = new URLSearchParams(location.search);
