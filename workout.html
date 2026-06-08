@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Workouts — Single File App</title>
 
   <!-- PERFORMANCE PRELOADS -->
@@ -32,9 +32,6 @@
     :root{ --bg:#f9fafb; --bg-dark:#111827; --card:#ffffff; --card-dark:#1f2937; --muted:#9ca3af; --accent:#ec4899; --bottom-nav:80px; }
     html,body{ height:100%; color:#111827; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto; -webkit-font-smoothing:antialiased;}
     .dark html,.dark body{ color:#f9fafb; }
-    /* iOS: prevent native video preview/callout and force inline playback */
-    video { -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
-    video::-webkit-media-controls-panel { -webkit-touch-callout: none; }
     .hero-pattern {
       background-image: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(6,182,212,0.12));
       background-color: #f9fafb; /* light surface to match app */
@@ -123,9 +120,9 @@
       const rawTheme = localStorage.getItem('fitmate-dark-mode');
       const isDarkMode = (rawTheme === null) ? true : (rawTheme === 'true');
       if (isDarkMode) {
-        document.documentElement.classList.add('dark');
+        document.documentElement.classList.add('dark')
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove('dark')
       }
       // Allow disabling gradient only via explicit query flag (runs early)
       try {
@@ -769,8 +766,8 @@
   const getSupabaseConfig = () => {
     // Replace these with your actual Supabase project URL and anon key
     return {
-      url: 'https://bhtabgrcxaahkuwrdwec.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodGFiZ3JjeGFhaGt1d3Jkd2VjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzNzc1MjMsImV4cCI6MjA3Mzk1MzUyM30._Cydy4B6QMF353OG8jnhK7juWgz2j4RirATIfCgAflQ'
+      url: 'https://rxvmpczkrhjlcbstxzee.supabase.co',
+      anonKey: 'sb_publishable_hBOBeTO49P4FHIlT115RMg_uG2falKh'
     };
   };
 
@@ -789,6 +786,37 @@
     });
   } catch (error) {
     console.log('Supabase not configured yet:', error.message);
+  }
+
+  // CRITICAL FIX (cross-device workout sync): the workout_history table uses
+  // snake_case columns (completion_rate, exercises_completed, total_exercises,
+  // workout_title, workout_level). Local workoutData uses camelCase. Inserting
+  // camelCase keys makes Supabase reject the row (or store NULLs), which showed up
+  // as "NaN%" and zero workout points after sync. This maps a local record to the
+  // exact DB columns so inserts succeed and completion_rate is never NULL.
+  function toWorkoutRow(w, userId) {
+    if (!w || typeof w !== 'object') return null;
+    var completion = (w.completionRate !== undefined && w.completionRate !== null)
+      ? w.completionRate
+      : (w.completion_rate !== undefined && w.completion_rate !== null ? w.completion_rate : 0);
+    var exDone = (w.exercisesCompleted !== undefined && w.exercisesCompleted !== null)
+      ? w.exercisesCompleted
+      : (w.exercises_completed !== undefined ? w.exercises_completed : 0);
+    var exTotal = (w.totalExercises !== undefined && w.totalExercises !== null)
+      ? w.totalExercises
+      : (w.total_exercises !== undefined ? w.total_exercises : 0);
+    return {
+      user_id: userId,
+      timestamp: w.timestamp || new Date().toISOString(),
+      duration: w.duration || 0,
+      type: w.type || 'structured_workout',
+      workout_title: w.workoutTitle || w.workout_title || 'Custom Workout',
+      workout_level: w.workoutLevel || w.workout_level || null,
+      completion_rate: Math.round(Number(completion) || 0),
+      exercises_completed: Number(exDone) || 0,
+      total_exercises: Number(exTotal) || 0,
+      incomplete: !!w.incomplete
+    };
   }
 
   // App state
@@ -1107,7 +1135,7 @@
         <div class="flex items-start gap-3">
           <div class="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 overflow-hidden flex-shrink-0 cursor-pointer" ${ex.animation ? `data-video="${ex.animation}" data-title="${ex.title}"` : ''}>
             ${ex.animation ? 
-              `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline disablePictureInPicture>
+              `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline disablepictureinpicture>
                  <source src="./animations/${ex.animation}" type="video/mp4">
                </video>` : 
               `<div class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 font-bold text-white text-xs">${i+1}</div>`
@@ -1537,7 +1565,7 @@
           <button class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl" onclick="this.closest('.fixed').remove()">&times;</button>
         </div>
         <div class="rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-          <video class="w-full h-64 object-contain" autoplay loop muted playsinline webkit-playsinline controls controlslist="nodownload" disablePictureInPicture>
+          <video class="w-full h-64 object-contain" autoplay loop muted playsinline webkit-playsinline controls controlslist="nodownload nofullscreen">
             <source src="./animations/${animationFile}" type="video/mp4">
           </video>
         </div>
@@ -1874,11 +1902,11 @@
     // CRITICAL FIX: Save workout data IMMEDIATELY to prevent overwriting
     // Log workout as activity minutes and save to history
     if (workoutData.duration > 0) {
-      // Log activity minutes to daily intake (same as index.html)
-      const dailyIntake = JSON.parse(localStorage.getItem('dailyIntake') || '{"calories": 0, "protein": 0, "carbs": 0, "fat": 0, "activity": 0, "water": 0}');
-      dailyIntake.activity = (dailyIntake.activity || 0) + workoutData.duration; // activity in minutes
-      localStorage.setItem('dailyIntake', JSON.stringify(dailyIntake));
-      
+      // NOTE: Workouts are scored separately and must NOT add Activity minutes.
+      // (Matches index.html, which intentionally disabled this.) Previously this line
+      // injected workout duration into dailyIntake.activity, causing phantom +5 activity
+      // points on workout completion. Activity is reserved for the dashboard movement timer.
+
       // Store workout history for detailed tracking
       const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
       workoutHistory.push(workoutData);
@@ -1897,7 +1925,7 @@
             try {
               const { error: workoutError } = await supabase
                 .from('workout_history')
-                .insert([{ user_id: currentUser.id, ...workoutData }], { returning: 'minimal' });
+                .insert([toWorkoutRow(workoutData, currentUser.id)], { returning: 'minimal' });
               if (workoutError) throw workoutError;
 
               const { error: updateError } = await supabase
@@ -2017,11 +2045,10 @@
       
       // Only save if workout had meaningful duration (at least 1 minute)
       if (workoutData.duration > 0) {
-        // Log activity minutes to daily intake
-        const dailyIntake = JSON.parse(localStorage.getItem('dailyIntake') || '{"calories": 0, "protein": 0, "carbs": 0, "fat": 0, "activity": 0, "water": 0}');
-        dailyIntake.activity = (dailyIntake.activity || 0) + workoutData.duration;
-        localStorage.setItem('dailyIntake', JSON.stringify(dailyIntake));
-        
+        // NOTE: Workouts are scored separately and must NOT add Activity minutes.
+        // (Matches index.html.) Removing the previous dailyIntake.activity injection
+        // prevents phantom +5 activity points when ending/exiting a workout.
+
         // Store workout history
         const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
         workoutHistory.push(workoutData);
@@ -2039,7 +2066,7 @@
               try {
                 const { error: workoutError } = await supabase
                   .from('workout_history')
-                  .insert([{ user_id: currentUser.id, ...workoutData }], { returning: 'minimal' });
+                  .insert([toWorkoutRow(workoutData, currentUser.id)], { returning: 'minimal' });
                 if (workoutError) throw workoutError;
 
                 const { error: updateError } = await supabase
