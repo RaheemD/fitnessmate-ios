@@ -124,6 +124,11 @@
       } else {
         document.documentElement.classList.remove('dark')
       }
+      // Paint the surface color immediately so the iframe never flashes its
+      // default white background before the stylesheet finishes loading.
+      try {
+        document.documentElement.style.backgroundColor = isDarkMode ? '#111827' : '#f9fafb';
+      } catch(_) { /* noop */ }
       // Allow disabling gradient only via explicit query flag (runs early)
       try {
         const params = new URLSearchParams(location.search);
